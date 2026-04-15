@@ -30,7 +30,8 @@ const DodgeGame = () => {
   const [showCustomize, setShowCustomize] = useState(false);
   const [, forceUpdate] = useState(0);
 
-  const playerImg = useImage(ASSETS.player);
+  const playerDefaultImg = useImage(ASSETS.playerDefault);
+  const playerBodyImg = useImage(ASSETS.playerBody);
   const obstacleImg = useImage(ASSETS.obstacle);
 
   // Custom images refs (updated on game start & customize)
@@ -240,16 +241,24 @@ const DodgeGame = () => {
 
       // Player
       const pSize = PLAYER_SIZE;
-      if (p.isDashing) ctx.globalAlpha = 0.6;
-      ctx.drawImage(playerImg, p.x - pSize / 2, p.y - pSize / 2, pSize, pSize);
-      ctx.globalAlpha = 1;
+      const bodyDrawWidth = pSize * 1.34;
+      const bodyDrawHeight = pSize * 1.04;
+      const bodyDrawX = p.x - bodyDrawWidth / 2;
+      const bodyDrawY = p.y - bodyDrawHeight / 2 + pSize * 0.08;
 
-      // Custom face on player
+      if (p.isDashing) ctx.globalAlpha = 0.6;
       if (customFaceRef.current) {
-        const faceSize = pSize * 0.55;
-        const faceY = p.y - pSize / 2 + pSize * 0.08;
-        ctx.drawImage(customFaceRef.current, p.x - faceSize / 2, faceY, faceSize, faceSize);
+        ctx.drawImage(playerBodyImg, bodyDrawX, bodyDrawY, bodyDrawWidth, bodyDrawHeight);
+
+        // Custom face on provided body PNG
+        const faceSize = pSize * 0.82;
+        const faceX = p.x - faceSize / 2;
+        const faceY = bodyDrawY - pSize * 0.56;
+        ctx.drawImage(customFaceRef.current, faceX, faceY, faceSize, faceSize);
+      } else {
+        ctx.drawImage(playerDefaultImg, p.x - pSize / 2, p.y - pSize / 2, pSize, pSize);
       }
+      ctx.globalAlpha = 1;
 
       // Dash trail
       if (p.isDashing) {
@@ -292,7 +301,7 @@ const DodgeGame = () => {
 
     g.animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(g.animId);
-  }, [gameState, playerImg, obstacleImg]);
+  }, [gameState, playerDefaultImg, playerBodyImg, obstacleImg]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-game-bg gap-4 select-none">
@@ -342,8 +351,8 @@ const DodgeGame = () => {
               💩 똥 피하기
             </h1>
             <p className="text-muted-foreground font-game text-[10px] text-center leading-loose max-w-xs">
-              방향키/A·D: 이동<br />
-              스페이스바: 대쉬<br />
+              PC: 방향키/A·D 이동, 스페이스바 대쉬<br />
+              모바일: 터치 버튼으로 이동/대쉬<br />
               최대한 오래 살아남아라!
             </p>
             <button
